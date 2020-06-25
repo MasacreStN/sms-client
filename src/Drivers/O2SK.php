@@ -73,6 +73,7 @@ class O2SK implements Driver
      */
     public function sendRequest(array $message): bool
     {
+        $result = false;
         try {
             $payload = [
                 'auth' => [
@@ -81,7 +82,13 @@ class O2SK implements Driver
                 'data' => $message
             ];
 
-            $this->client->post($this->endpoint, [RequestOptions::JSON => $payload]);
+            $response = $this->client->post($this->endpoint, [RequestOptions::JSON => $payload]);
+            $response = json_decode($response->getBody()->getContents(), true);
+
+            if (isset($response['id']) && $response['id'] === 'OK') {
+              $result = true;
+            }
+            $result = false;
         } catch (ClientException $e) {
             throw new \Matthewbdaly\SMS\Exceptions\ClientException();
         } catch (ServerException $e) {
@@ -91,7 +98,7 @@ class O2SK implements Driver
         } catch (RequestException $e) {
             throw new \Matthewbdaly\SMS\Exceptions\RequestException();
         }
-
-        return true;
+        
+        return $result;
     }
 }
